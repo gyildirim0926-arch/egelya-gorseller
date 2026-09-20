@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Egelya Paylaşım</title>
+<style>
+:root{--bg:#fbfaf7;--card:#fff;--fg:#22261f;--muted:#5d6356;--line:#e3e0d7;--accent:#4a5d3a;--accent-fg:#fff;--ok:#2f7a4d;--err:#a8352c}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15170f;--card:#1d2016;--fg:#e8e6dd;--muted:#a1a698;--line:#2e3227;--accent:#9db87c;--accent-fg:#15170f;--ok:#7fc79b;--err:#e08b82}}
+:root[data-theme="dark"]{--bg:#15170f;--card:#1d2016;--fg:#e8e6dd;--muted:#a1a698;--line:#2e3227;--accent:#9db87c;--accent-fg:#15170f;--ok:#7fc79b;--err:#e08b82}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;padding:40px 16px}
+main{max-width:640px;margin:0 auto}
+h1{font-size:1.6rem;margin:0 0 .15em}
+.alt{color:var(--muted);margin:0 0 2em}
+.kart{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
+h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 14px}
+button{font:inherit;font-weight:600;border:0;border-radius:8px;padding:11px 18px;background:var(--accent);color:var(--accent-fg);cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.ikincil{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.hesap{display:flex;align-items:center;gap:12px}
+.hesap img{width:44px;height:44px;border-radius:50%;background:var(--line)}
+.hesap b{display:block}
+.hesap span{color:var(--muted);font-size:.9rem}
+select,textarea{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+textarea{min-height:90px;resize:vertical}
+label{display:block;font-size:.88rem;color:var(--muted);margin:14px 0 5px}
+.sec{display:flex;gap:9px;align-items:center;margin:8px 0;font-size:.93rem}
+.sec input{width:17px;height:17px;accent-color:var(--accent)}
+.kucuk{font-size:.84rem;color:var(--muted);margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.kucuk a{color:var(--accent)}
+#durum{margin-top:14px;font-size:.92rem;min-height:1.4em}
+.ok{color:var(--ok)}.err{color:var(--err)}
+.gizli{display:none}
+ul.liste{list-style:none;padding:0;margin:0;max-height:210px;overflow:auto}
+ul.liste li{border-bottom:1px solid var(--line)}
+ul.liste li:last-child{border:0}
+ul.liste button{width:100%;text-align:left;background:transparent;color:var(--fg);border-radius:0;padding:11px 4px;font-weight:400}
+ul.liste button:hover{color:var(--accent)}
+ul.liste small{color:var(--muted)}
+.secili{color:var(--accent)!important;font-weight:600!important}
+</style>
+</head>
+<body>
+<main>
+<h1>Egelya Paylaşım</h1>
+<p class="alt">Egelya'nın kendi videolarını Egelya'nın TikTok hesabına yayınlar.</p>
+
+<section class="kart" id="k-giris">
+  <h2>1 · Hesap</h2>
+  <div id="bagsiz">
+    <p style="margin-top:0">Yayınlamak için TikTok hesabını bağlayın.</p>
+    <button id="btn-giris">TikTok ile bağlan</button>
+  </div>
+  <div id="bagli" class="gizli">
+    <div class="hesap">
+      <img id="avatar" alt="">
+      <div><b id="isim"></b><span id="acik"></span></div>
+    </div>
+  </div>
+</section>
+
+<section class="kart gizli" id="k-video">
+  <h2>2 · Video</h2>
+  <ul class="liste" id="liste"></ul>
+</section>
+
+<section class="kart gizli" id="k-yayin">
+  <h2>3 · Yayın</h2>
+  <label for="metin">Açıklama</label>
+  <textarea id="metin"></textarea>
+
+  <label for="mahrem">Kimler görebilir</label>
+  <select id="mahrem"></select>
+
+  <div class="sec"><input type="checkbox" id="yorum"><label for="yorum" style="margin:0">Yorumlara izin ver</label></div>
+  <div class="sec"><input type="checkbox" id="duet"><label for="duet" style="margin:0">Düet'e izin ver</label></div>
+  <div class="sec"><input type="checkbox" id="stitch"><label for="stitch" style="margin:0">Stitch'e izin ver</label></div>
+
+  <p class="kucuk">Yayınlayarak TikTok'un
+    <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/tr" target="_blank" rel="noopener">Müzik Kullanım Onayı</a>'nı
+    kabul etmiş olursunuz.</p>
+
+  <p style="margin:16px 0 0"><button id="btn-yayin" disabled>TikTok'a yayınla</button></p>
+  <div id="durum"></div>
+</section>
+
+<p class="kucuk" style="border:0">
+  <a href="privacy.html">Gizlilik Politikası</a> · <a href="terms.html">Kullanım Şartları</a>
+</p>
+</main>
+
+<script>
+const YEREL = 'http://127.0.0.1:8787';
+const $ = (id) => document.getElementById(id);
+let secili = null;
+
+const cagir = async (yol, govde) => {
+  const y = await fetch(YEREL + yol, govde
+    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(govde) }
+    : {});
+  return y.json();
+};
+
+const yaz = (metin, sinif = '') => { $('durum').textContent = metin; $('durum').className = sinif; };
+
+$('btn-giris').onclick = async () => {
+  const { adres } = await cagir('/giris');
+  location.href = adres;
+};
+
+// TikTok yetkilendirmeden sonra buraya ?code=... ile donuyor.
+async function acilista() {
+  const kod = new URLSearchParams(location.search).get('code');
+  if (!kod) return;
+  history.replaceState({}, '', location.pathname);
+
+  const { profil, hata } = await cagir('/token', { code: kod });
+  if (!profil) return yaz('Bağlantı kurulamadı: ' + JSON.stringify(hata), 'err');
+
+  $('avatar').src = profil.avatar_url || '';
+  $('isim').textContent = profil.display_name || '';
+  $('acik').textContent = 'open_id: ' + (profil.open_id || '').slice(0, 12) + '…';
+  $('bagsiz').classList.add('gizli');
+  $('bagli').classList.remove('gizli');
+  $('k-video').classList.remove('gizli');
+  $('k-yayin').classList.remove('gizli');
+
+  // Direct Post oncesi zorunlu: yayinci bilgisi ve izin verilen mahremiyet secenekleri.
+  const y = await cagir('/yayinci');
+  const adlar = {
+    PUBLIC_TO_EVERYONE: 'Herkes',
+    MUTUAL_FOLLOW_FRIENDS: 'Karşılıklı takipleştiklerim',
+    FOLLOWER_OF_CREATOR: 'Takipçilerim',
+    SELF_ONLY: 'Yalnızca ben',
+  };
+  $('mahrem').innerHTML = '<option value="">Seçin…</option>' +
+    (y.privacy_level_options || []).map((s) => `<option value="${s}">${adlar[s] || s}</option>`).join('');
+  if (y.creator_nickname) $('isim').textContent = y.creator_nickname;
+
+  // TikTok'un kapattigi etkilesimler acilamaz.
+  for (const [id, kapali] of [['yorum', y.comment_disabled], ['duet', y.duet_disabled], ['stitch', y.stitch_disabled]]) {
+    $(id).checked = !kapali;
+    $(id).disabled = !!kapali;
+  }
+
+  const { videolar } = await cagir('/videolar');
+  $('liste').innerHTML = videolar.map((v, i) =>
+    `<li><button data-i="${i}">${v.ad}<br><small>${(v.boyut / 1048576).toFixed(1)} MB</small></button></li>`).join('');
+  $('liste').onclick = (e) => {
+    const d = e.target.closest('button');
+    if (!d) return;
+    secili = videolar[d.dataset.i];
+    $('metin').value = secili.metin || '';
+    document.querySelectorAll('#liste button').forEach((b) => b.classList.remove('secili'));
+    d.classList.add('secili');
+    kontrol();
+  };
+  $('mahrem').onchange = kontrol;
+}
+
+const kontrol = () => { $('btn-yayin').disabled = !(secili && $('mahrem').value); };
+
+$('btn-yayin').onclick = async () => {
+  $('btn-yayin').disabled = true;
+  yaz('Video TikTok’a yükleniyor…');
+
+  const { publish_id, hata } = await cagir('/yayinla', {
+    yol: secili.yol, metin: $('metin').value, mahremiyet: $('mahrem').value,
+  });
+  if (!publish_id) { yaz('Hata: ' + JSON.stringify(hata), 'err'); $('btn-yayin').disabled = false; return; }
+
+  for (let i = 0; i < 40; i++) {
+    await new Promise((c) => setTimeout(c, 3000));
+    const d = await cagir('/durum', { publish_id });
+    if (d.status === 'PUBLISH_COMPLETE') return yaz('Yayınlandı. TikTok hesabında görünüyor.', 'ok');
+    if (d.status === 'FAILED') return yaz('TikTok yayını reddetti: ' + (d.fail_reason || ''), 'err');
+    yaz('Durum: ' + (d.status || 'işleniyor') + '…');
+  }
+  yaz('Zaman aşımı — TikTok hesabını kontrol edin.', 'err');
+};
+
+acilista();
+</script>
+</body>
+</html>
